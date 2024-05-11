@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>샬롬 토크</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <section class="section">
+        <div class="container" style="text-align: center";>
+            <div class="card">
+                <div class="card-content" onclick="toggleCard()">
+                    <div class="front">
+                        <div class="content">
+                            <p style="font-size: 25px">동대문교회</p> 
+                            <p>샬롬카드</p>
+                            <p style="font-size: 20px">터치하면 질문이 나옵니다. 질문을 뽑으신 분께서 자유롭게 이야기해 주시면 됩니다. 넘기고 싶은 질문이라면 다시 뽑아 주세요.</p> 
+                        </div>
+                    </div>
+                    <div class="back">
+                        <div class="content" id="questionContent">질문이 여기에 표시됩니다.</div>
+                    </div>
+                </div>
+            </div>
+            <button onclick="initializeSound()" id="soundButton" class="button is-white" style="margin-top:20px;">소리 켜기</button>
+        </div>
+    </section>
+
+    <script>
+        var soundEnabled = false;
+        var soundInitialized = false;
+
+        function initializeSound() {
+            if (!soundInitialized) {
+                // 최초 클릭으로 음성 API 초기화
+                window.speechSynthesis.speak(new SpeechSynthesisUtterance(""));
+                soundInitialized = true;
+                document.getElementById('soundButton').textContent = '소리 끄기';
+                soundEnabled = true;
+            } else {
+                toggleSound();
+            }
+        }
+
+        function toggleCard() {
+            const card = document.querySelector('.card-content');
+            card.classList.toggle('is-flipped');
+
+            // 카드가 처음으로 플립되었을 때 질문을 불러오기
+            if (card.classList.contains('is-flipped')) {
+                drawQuestion();
+            }
+        }
+
+        function drawQuestion() {
+            fetch('questions.json')
+                .then(response => response.json())
+                .then(data => {
+                    const questions = data.questions;
+                    const randomIndex = Math.floor(Math.random() * questions.length);
+                    const question = questions[randomIndex];
+                    document.getElementById('questionContent').textContent = question;
+                    if (soundEnabled) {
+                        speak(question);
+                    }
+                })
+                .catch(error => console.error('Error loading the questions:', error));
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundButton').textContent = soundEnabled ? '소리 끄기' : '소리 켜기';
+        }
+
+        function speak(text) {
+            const msg = new SpeechSynthesisUtterance(text);
+            window.speechSynthesis.speak(msg);
+        }
+    </script>
+</body>
+</html>
